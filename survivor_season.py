@@ -4,6 +4,7 @@
 from results_odds_all_seasons import ResultsOddsAllSeasons
 from survivor_entry import SurvivorEntry
 import random
+import math
 
 class SurvivorSeason:
   
@@ -22,7 +23,20 @@ class SurvivorSeason:
     num_remaining = 0
     for entry in self.entries:
       if entry.NumStrikes() == 0: num_remaining += 1
-    return num_remaining    
+    return num_remaining
+  
+  def WeightFavorite(self, percent_favorite):
+    return (float(percent_favorite) - 50.0) / 50.0
+
+  def WeightedPick(self, pick_possibilities):
+    weights_picks = []
+    for pick_poss in pick_possibilities:
+      weights_picks.append(1.0 + self.WeightFavorite(pick_poss[1]))
+    print(pick_possibilities)
+    print(weights_picks)
+    choice = random.choices(pick_possibilities, weights = weights_picks)[0]
+    print(choice)
+    return choice
 
   def ProcessWeek(self):
     self.week_num += 1
@@ -44,7 +58,9 @@ class SurvivorSeason:
         if pick_possibilities:
           # make random selection from favorite pick possibilites
           # if at least one hasn't been used
-          week_pick = random.choice(pick_possibilities)
+          # add weighing of each pick based on how much of a favorite it is
+          week_pick = self.WeightedPick(pick_possibilities)
+          #week_pick = random.choice(pick_possibilities)
         else:
           # if all favorite pick possibilities used, select next
           # favorite that has not been used
@@ -59,7 +75,7 @@ class SurvivorSeason:
         if (entry.NumStrikes() == 0):
           print("Entry survived: " + str(entry.AllPicks()))
         else:
-          print("Entry lost")
+          print("Entry lost: " + str(entry.AllPicks()))
     print("")
     print("Number of entries left: " + str(self.RemainingEntries()))
     print("")
