@@ -78,9 +78,9 @@ class ResultsOddsAllSeasons:
         self.survivor_data.append(survivor_data_row)
       except ValueError:
         pass
-    print(self.survivor_data)
+    #print(self.survivor_data)
     week_options = self.SurvivorWeekOptions(2024, 18)
-    print(week_options)
+    #print(week_options)
 
   # compute approximate win percent from spread
   def SpreadToWinPercent(self, spread):
