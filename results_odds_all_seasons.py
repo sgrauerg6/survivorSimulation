@@ -52,6 +52,16 @@ class ResultsOddsAllSeasons:
     "Washington Commanders" : "WAS",
   }
 
+  # dictionary of team abbreviation used in consenus picks to abbreviation used in processing
+  # only given if different from team abbreviation used in processing
+  kConsPicksAbbrevToProcAbbrev = {
+    "STL" : "LAR",
+    "OAK" : "LVR",
+    "LV" : "LVR",
+    "SD" : "LAC",
+    "WSH" : "WAS"
+  }
+
   def __init__(self, all_results_csv):
     with open(all_results_csv, newline='') as f:
       reader = csv.reader(f)
@@ -86,12 +96,39 @@ class ResultsOddsAllSeasons:
   def SpreadToWinPercent(self, spread):
     return round((float(98 - 50) / 15.5) * min(15.5, abs(spread)) + 50.0)
 
-  # get survivor week options in order from most biggest favorite to smallest
-  # favority
+  # get survivor week options
   def SurvivorWeekOptions(self, year, week):
     week_options = []
+    # get consensus picks for week
+    consensus_picks_file = "consensus_picks_" + str(year) + "_" + str(week) + ".csv"
+    with open(consensus_picks_file, newline='') as f:
+      reader = csv.reader(f)
+      consensus_picks_data = list(reader)
+    consensus_pick_team = {}
+    column_num_average = 0
+    headers_row = consensus_picks_data[0]
+    for i in range(0, len(headers_row)): 
+      if headers_row[i] == "Average":
+        column_num_average = i
+        break
+    for row in consensus_picks_data[1:]:
+      #print(row)
+      team = row[0]
+      # adjust team abbreviation if needed to match team abbreviation used
+      # in processing
+      if team in ResultsOddsAllSeasons.kConsPicksAbbrevToProcAbbrev:
+        team = ResultsOddsAllSeasons.kConsPicksAbbrevToProcAbbrev[row[0]]
+      consensus_pick_team[team] = row[column_num_average]
     for survivor_data_game in self.survivor_data:
       if survivor_data_game[0] == year and survivor_data_game[1] == week:
-        week_options.append(survivor_data_game[2:5])
-    week_options.sort(key=lambda x: x[1], reverse = True) 
+        favored_team = survivor_data_game[2]
+        game_data = survivor_data_game[2:5]
+        game_data.append(float(consensus_pick_team[favored_team]))
+        week_options.append(game_data)
     return week_options
+  
+  def PercentWinIdxSurvivorWeek(self):
+    return 1
+  
+  def ConsensusPickPercentIdxSurvivorWeek(self):
+    return 3

@@ -8,7 +8,7 @@ import math
 
 class SurvivorSeason:
   
-  def __init__(self, year, num_weeks, num_entries, num_favorities_selection, weight_favorities):
+  def __init__(self, year, num_weeks, num_entries, num_favorities_selection, weight_favorities, use_consenus_picks):
     self.entries = []
     self.num_entries = num_entries
     self.year = year
@@ -17,9 +17,11 @@ class SurvivorSeason:
     self.week_num = 0
     self.num_favorites_selection = num_favorities_selection
     self.weight_favories = weight_favorities
+    self.use_consenus_picks = use_consenus_picks
     for i in range(self.num_entries):
       self.entries.append(SurvivorEntry())
   
+  # get number of entries that are remaining with no wrong picks
   def RemainingEntries(self):
     num_remaining = 0
     for entry in self.entries:
@@ -29,22 +31,27 @@ class SurvivorSeason:
   def WeightFavorite(self, percent_favorite):
     return (float(percent_favorite) - 50.0) / 50.0
 
+  # set pick using weighing where teams that are more favored or have a larger
+  # percent of being picked are more likely to be picked
   def WeightedPick(self, pick_possibilities):
     weights_picks = []
     for pick_poss in pick_possibilities:
-      weights_picks.append(1.0 + self.WeightFavorite(pick_poss[1]))
-    #print(pick_possibilities)
-    #print(weights_picks)
+      if not self.use_consenus_picks:
+        weights_picks.append(1.0 + self.WeightFavorite(pick_poss[1]))
+      else:
+        weights_picks.append(pick_poss[3])
     choice = random.choices(pick_possibilities, weights = weights_picks)[0]
-    #print(choice)
     return choice
 
   def ProcessWeek(self):
     self.week_num += 1
     week_options = self.results.SurvivorWeekOptions(self.year, self.week_num)
-    #print("WEEK " + str(self.week_num))
-    #print(week_options)
-    #print("Number of entries at start of week: " + str(self.RemainingEntries()))
+    # sort team options for week by most popular consensus picks or by most
+    # favored to win depending on current setting
+    index_sort = self.results.PercentWinIdxSurvivorWeek()
+    if self.use_consenus_picks:
+      index_sort = self.results.ConsensusPickPercentIdxSurvivorWeek()
+    week_options.sort(key=lambda x: x[index_sort], reverse = True) 
     # go through each entry and add pick
     # select random pick of first num_favorites_selection if one available, if not choose next most likely to win
     for entry in self.entries:
@@ -71,16 +78,7 @@ class SurvivorSeason:
               week_pick = pick_poss
               break
         entry.AddPick(week_pick[0])
-        #print("")
-        #print("Entry pick w/ result: " + week_pick[0] + " " + week_pick[2])
         entry.SetLastPickResult(week_pick[2])
-        #if (entry.NumStrikes() == 0):
-        #  print("Entry survived: " + str(entry.AllPicks()))
-        #else:
-        #  print("Entry lost: " + str(entry.AllPicks()))
-    #print("")
-    #print("Number of entries left: " + str(self.RemainingEntries()))
-    #print("")
     return self.RemainingEntries()
 
     
