@@ -122,9 +122,10 @@ class ResultsOddsAllSeasons:
     for survivor_data_game in self.survivor_data:
       if survivor_data_game[0] == year and survivor_data_game[1] == week:
         favored_team = survivor_data_game[2]
-        game_data = survivor_data_game[2:5]
-        game_data.append(float(consensus_pick_team[favored_team]))
-        week_options.append(game_data)
+        if (favored_team != "PICK"):
+          game_data = survivor_data_game[2:5]
+          game_data.append(float(consensus_pick_team[favored_team]))
+          week_options.append(game_data)
     return week_options
   
   def PercentWinIdxSurvivorWeek(self):
