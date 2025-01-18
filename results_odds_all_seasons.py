@@ -1,6 +1,7 @@
 # class to load data across all seasons from csv file
 
 import csv
+from team_rankings import TeamRankings
 
 class ResultsOddsAllSeasons:
 
@@ -63,12 +64,12 @@ class ResultsOddsAllSeasons:
   }
 
   def __init__(self, all_results_csv):
+    self.all_results_data = []
     with open(all_results_csv, newline='') as f:
       reader = csv.reader(f)
-      data = list(reader)
-    #print(data)
+      self.all_results_data = list(reader)
     # go through data and add winning team
-    for row in data[1:]:
+    for row in self.all_results_data[1:]:
       if int(row[5]) > int(row[6]):
         row.append(ResultsOddsAllSeasons.kTeamNameToAbbrev[row[4]])
       elif int(row[5]) == int(row[6]):
@@ -77,7 +78,7 @@ class ResultsOddsAllSeasons:
         row.append(ResultsOddsAllSeasons.kTeamNameToAbbrev[row[7]])
     # generate list with season, week, predicted winner, odds, and winner
     self.survivor_data = []
-    for row in data[1:]:
+    for row in self.all_results_data[1:]:
       try:
         survivor_data_row = []
         survivor_data_row.append(int(row[1]))
@@ -88,16 +89,34 @@ class ResultsOddsAllSeasons:
         self.survivor_data.append(survivor_data_row)
       except ValueError:
         pass
-    #print(self.survivor_data)
-    week_options = self.SurvivorWeekOptions(2024, 18)
-    #print(week_options)
 
   # compute approximate win percent from spread
   def SpreadToWinPercent(self, spread):
     return round((float(98 - 50) / 15.5) * min(15.5, abs(spread)) + 50.0)
+  
+  # get starting year, month, and day for week of season
+  def StartingDateWeekOfSeason(self, year, week):
+    # get starting date for season
+    index_year = 1
+    index_week = 2
+    date = ""
+    for game_data in self.all_results_data:
+      if (game_data[index_year] == str(year)) and ((game_data[index_week]) == str(week)):
+        starting_date = game_data[0]
+        break
+
+    return starting_date 
+
 
   # get survivor week options
   def SurvivorWeekOptions(self, year, week):
+    #starting_date_week = self.StartingDateWeekOfSeason(year, week)
+    #month_str = str(starting_date_week.split('/')[0]).zfill(2)
+    #day_str = str(starting_date_week.split('/')[1]).zfill(2)
+    #year_str = str(starting_date_week.split('/')[2]).zfill(2)
+    #date_str = year_str + "-" + month_str + "-" + day_str
+    t_rankings = TeamRankings()
+    teams_w_rankings = t_rankings.RetrieveTeamRankings(year, week)
     week_options = []
     # get consensus picks for week
     consensus_picks_file = "consensus_picks_" + str(year) + "_" + str(week) + ".csv"
@@ -112,7 +131,6 @@ class ResultsOddsAllSeasons:
         column_num_average = i
         break
     for row in consensus_picks_data[1:]:
-      #print(row)
       team = row[0]
       # adjust team abbreviation if needed to match team abbreviation used
       # in processing
@@ -125,6 +143,7 @@ class ResultsOddsAllSeasons:
         if (favored_team != "PICK"):
           game_data = survivor_data_game[2:5]
           game_data.append(float(consensus_pick_team[favored_team]))
+          game_data.append(teams_w_rankings[favored_team])
           week_options.append(game_data)
     return week_options
   
@@ -132,4 +151,7 @@ class ResultsOddsAllSeasons:
     return 1
   
   def ConsensusPickPercentIdxSurvivorWeek(self):
+    return 3
+  
+  def TeamRankingIdxSurvivorWeek(self):
     return 3
