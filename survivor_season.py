@@ -1,12 +1,13 @@
 # class to correspond to season of survivor where unique team is selected each
 # week and goal is to pick winner every week
 
-from results_odds_all_seasons import ResultsOddsAllSeasons
+from results_odds_season import ResultsOddsSeason
 from survivor_entry import SurvivorEntry
 from enum import Enum
 from survivor_strategy import SurvivorStrategy
 
 
+# class for season of survivor with any number of survivor entries at start
 class SurvivorSeason:
   
   # initialize survivor season
@@ -14,7 +15,7 @@ class SurvivorSeason:
     self.entries = []
     self.num_entries = num_entries
     self.year = year
-    self.results = ResultsOddsAllSeasons("spreadspoke_scores.csv")
+    self.results = ResultsOddsSeason(self.year, "spreadspoke_scores.csv")
     self.week_num = 0
     for i in range(self.num_entries):
       self.entries.append(SurvivorEntry())

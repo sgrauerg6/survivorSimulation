@@ -1,11 +1,12 @@
-# class to load data across all seasons from csv file
+# class to load data across season from csv file
 
 import csv
 from team_rankings import TeamRankings
 from consensus_picks import ConsensusPicks
 from typing import List
 
-class ResultsOddsAllSeasons:
+# class to load and store win/loss for each game, odds, and other data across season
+class ResultsOddsSeason:
 
   # dictionary of team name to abbreviation
   kTeamNameToAbbrev = {
@@ -55,31 +56,37 @@ class ResultsOddsAllSeasons:
     "Washington Commanders" : "WAS",
   }
 
-  # initialize survivor data for all seasons using csv file with all data
-  def __init__(self, all_results_csv):
+
+  # initialize survivor data for season using csv file with all data
+  def __init__(self, season_year, all_results_csv):
+    # read csv file with data from all seasons
     self.all_results_data = []
     with open(all_results_csv, newline='') as f:
       reader = csv.reader(f)
       self.all_results_data = list(reader)
+
     # go through data and add winning team
     for row in self.all_results_data[1:]:
       if int(row[5]) > int(row[6]):
-        row.append(ResultsOddsAllSeasons.kTeamNameToAbbrev[row[4]])
+        row.append(ResultsOddsSeason.kTeamNameToAbbrev[row[4]])
       elif int(row[5]) == int(row[6]):
         row.append("TIE")
       else:
-        row.append(ResultsOddsAllSeasons.kTeamNameToAbbrev[row[7]])
+        row.append(ResultsOddsSeason.kTeamNameToAbbrev[row[7]])
+
     # generate list with season, week, predicted winner, odds, and winner
     self.survivor_data = []
     for row in self.all_results_data[1:]:
       try:
-        survivor_data_row = []
-        survivor_data_row.append(int(row[1]))
-        survivor_data_row.append(int(row[2]))
-        survivor_data_row.append(row[8])
-        survivor_data_row.append(self.__SpreadToWinPercent(float(row[9])))
-        survivor_data_row.append(row[-1])
-        self.survivor_data.append(survivor_data_row)
+        # only add entries that correspond to input season year
+        if (int(row[1]) == season_year):
+          survivor_data_row = []
+          survivor_data_row.append(int(row[1]))
+          survivor_data_row.append(int(row[2]))
+          survivor_data_row.append(row[8])
+          survivor_data_row.append(self.__SpreadToWinPercent(float(row[9])))
+          survivor_data_row.append(row[-1])
+          self.survivor_data.append(survivor_data_row)
       except ValueError:
         pass
 
@@ -106,7 +113,7 @@ class ResultsOddsAllSeasons:
 
 
   # get survivor week options
-  def SurvivorWeekOptions(self, year, week):
+  def SurvivorWeekOptions(self, year, week) -> List[str]:
     # get team rankings for week
     teams_w_rankings = TeamRankings.RetrieveTeamRankings(year, week)
     # get consensus picks for week
@@ -122,14 +129,17 @@ class ResultsOddsAllSeasons:
           week_options.append(game_data)
     return week_options
   
+
   # get column index of percent chance to win
   def PercentWinIdxSurvivorWeek(self):
     return 1
   
+
   # get column index of average consensus pick
   def ConsensusPickPercentIdxSurvivorWeek(self):
     return 3
   
+
   # get column index of team ranking
   def TeamRankingIdxSurvivorWeek(self):
     return 3

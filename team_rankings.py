@@ -85,6 +85,7 @@ class TeamRankings:
     with open(team_rankings_file, newline='') as f:
       reader = csv.reader(f)
       team_rankings_data = list(reader)
+      
     # get min and max team ranking to use for scaling
     min_ranking = 0
     max_ranking = 0
@@ -95,6 +96,7 @@ class TeamRankings:
       except:
         pass
     diff_max_min_ranking = max_ranking - min_ranking
+
     # scale team rankings to be between 0 and 1
     # if not team ranking available or can't be read, set team ranking to 0.5
     team_rankings = {}

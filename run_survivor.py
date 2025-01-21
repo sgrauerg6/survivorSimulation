@@ -1,4 +1,4 @@
-from results_odds_all_seasons import ResultsOddsAllSeasons
+from results_odds_season import ResultsOddsSeason
 from survivor_season import SurvivorSeason
 from consensus_picks import ConsensusPicks
 from team_rankings import TeamRankings
