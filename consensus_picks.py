@@ -5,12 +5,16 @@ import bs4
 import csv
 from typing import Dict
 
-# class to run data scraping to get consensus picks for each week and to
-# retrieve file path for consensus picks for week
+# class to run data scraping to get consensus picks for each week that get
+# saved to csv file and to retrieve consensus picks for week from appropriate
+# file
 class ConsensusPicks:
 
   # consensus picks folder directory
   kConsensusPicksDir = "Data/ConsensusPicks"
+
+  # prefix of URL to retrieve consensus picks
+  kPrefixURLConsensusPicks = "https://www.survivorgrid.com/picks/"
 
   # dictionary of team abbreviation used in consenus picks to abbreviation used in processing
   # only given if different from team abbreviation used in processing
@@ -21,10 +25,11 @@ class ConsensusPicks:
     "SD" : "LAC",
     "WSH" : "WAS"
   }
+  
 
   # get file path for consensus picks for given year and week
   @staticmethod
-  def ConsensusPicksFilePath(year, week) -> str:
+  def __ConsensusPicksFilePath(year, week) -> str:
     return ConsensusPicks.kConsensusPicksDir + "/consensus_picks_" + str(year) + "_" + str(week) + ".csv"
 
 
@@ -32,7 +37,7 @@ class ConsensusPicks:
   # returns dictionary of team to consensus pick percent for each team for week
   @staticmethod
   def ConsensusPicksForWeek(year, week) -> Dict[str, float]:
-    consensus_picks_file = ConsensusPicks.ConsensusPicksFilePath(year, week)
+    consensus_picks_file = ConsensusPicks.__ConsensusPicksFilePath(year, week)
     with open(consensus_picks_file, newline='') as f:
       reader = csv.reader(f)
       consensus_picks_data = list(reader)
@@ -56,7 +61,7 @@ class ConsensusPicks:
   # retrieve consensus survivor picks for week and year from web scraping and save to csv
   @staticmethod
   def RetrieveConsenusPicks(year, week) -> None:
-      URL = "https://www.survivorgrid.com/picks/" + str(year) + "/" + str(week)
+      URL = ConsensusPicks.kPrefixURLConsensusPicks + str(year) + "/" + str(week)
       print(URL)
       req = requests.get(URL)
       soup = bs4.BeautifulSoup(req.text, 'html.parser')

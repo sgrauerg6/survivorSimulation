@@ -41,9 +41,9 @@ class SurvivorSeason:
 
     # sort team options for week by most popular consensus picks or by most
     # favored to win depending on current setting
-    index_sort = self.results.PercentWinIdxSurvivorWeek()
-    if survive_picks_strategy.UseConsensusPicks():
-      index_sort = self.results.ConsensusPickPercentIdxSurvivorWeek()
+    index_sort = self.results.ConsensusPickPercentIdxSurvivorWeek() if \
+      survive_picks_strategy.UseConsensusPicks() else \
+      self.results.PercentWinIdxSurvivorWeek()
     week_options.sort(key=lambda x: x[index_sort], reverse = True)
 
     # go through each entry and add pick
