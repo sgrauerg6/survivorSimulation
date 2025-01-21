@@ -3,6 +3,7 @@
 import requests
 import bs4
 import csv
+from typing import Dict
 
 class TeamRankings:
 
@@ -41,56 +42,69 @@ class TeamRankings:
     "Tennessee" : "TEN",
     "Washington" : "WAS"
   }
-  
-  def __init__(self):
-      pass
 
-  def RetrieveTeamRankings(self, year, week):
-      '''URL = "https://www.teamrankings.com/nfl/ranking/predictive-by-other?date=" + date_str
-      print(URL)
-      req = requests.get(URL)
-      soup = bs4.BeautifulSoup(req.text, 'html.parser')
-      table = soup.find_all('table')[0]
-      rows = table.find_all('tr')
-      headers = []
-      cells = rows[0].find_all('th')
-      for cell in cells:
-        headers.append(cell.text.split()[0])
-      team_rankings_csv = "team_rankings_" + str(year) + "_" + str(week) + ".csv"
-      with open(team_rankings_csv, 'w', newline='',encoding='utf-8') as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(headers[1:3])
-        for row in rows[1:]:
-          data_out = []
-          cells = row.find_all('td')
-          data_out.append((cells[1].text.split('%')[0]).split(" (")[0])
-          #data_out.append(cells[0].text.split()[0])
-          #for i in range(1, len(headers)):
-          data_out.append(cells[2].text.split('%')[0])
-          writer.writerow(data_out)'''
-      # get team rankings picks for week
-      team_rankings_file = "team_rankings_" + str(year) + "_" + str(week) + ".csv"
-      with open(team_rankings_file, newline='') as f:
-        reader = csv.reader(f)
-        team_rankings_data = list(reader)
-      team_rankings = {}
-      headers_row = team_rankings_data[0]
-      min_ranking = 0
-      max_ranking = 0
-      for row in team_rankings_data[1:]:
-        try:
-          min_ranking = min(min_ranking, float(row[1]))
-          max_ranking = max(max_ranking, float(row[1]))
-        except:
-          pass
-      diff_max_min_ranking = max_ranking - min_ranking
-      for row in team_rankings_data[1:]:
-        try:
-          if diff_max_min_ranking != 0:
-            ranking = (float(row[1]) - min_ranking) / diff_max_min_ranking
-            team_rankings[TeamRankings.kTeamRankingNameToAbbrev[str(row[0])]] = ranking
-          else:
-            team_rankings[TeamRankings.kTeamRankingNameToAbbrev[str(row[0])]] = 0.5
-        except:
+  # prefix of web address for team rankings
+  kTeamRankingsURLPrefix = "https://www.teamrankings.com/nfl/ranking/predictive-by-other?date="
+
+
+  # retrieve team rankings for given date from web
+  # retrieved data is stored in csv file with file name including survivor week
+  # and year 
+  @staticmethod
+  def RankingsWebToCsv(rankings_year, rankings_month, rankings_day, survivor_year, survivor_week) -> None:
+    date_str = str(rankings_year) + "-" + str(rankings_month).zfill(2) + "-" + str(rankings_day).zfill(2)
+    URL = TeamRankings.kTeamRankingsURLPrefix + date_str
+    print(URL)
+    req = requests.get(URL)
+    soup = bs4.BeautifulSoup(req.text, 'html.parser')
+    table = soup.find_all('table')[0]
+    rows = table.find_all('tr')
+    headers = []
+    cells = rows[0].find_all('th')
+    for cell in cells:
+      headers.append(cell.text.split()[0])
+    team_rankings_csv = "team_rankings_" + str(survivor_year) + "_" + str(survivor_week) + ".csv"
+    with open(team_rankings_csv, 'w', newline='',encoding='utf-8') as outfile:
+      writer = csv.writer(outfile)
+      writer.writerow(headers[1:3])
+      for row in rows[1:]:
+        data_out = []
+        cells = row.find_all('td')
+        data_out.append((cells[1].text.split('%')[0]).split(" (")[0])
+        data_out.append(cells[2].text.split('%')[0])
+        writer.writerow(data_out)
+
+
+  # get team rankings picks for week
+  # return dictionary of team to ranking scaled between 0.0 and 1.0
+  @staticmethod
+  def RetrieveTeamRankings(year, week) -> Dict[str, float]:
+    kTeamRankingColumnIdx = 1
+    kTeamRankingRowStart = 1
+    team_rankings_file = "Data/TeamRankings/team_rankings_" + str(year) + "_" + str(week) + ".csv"
+    with open(team_rankings_file, newline='') as f:
+      reader = csv.reader(f)
+      team_rankings_data = list(reader)
+    # get min and max team ranking to use for scaling
+    min_ranking = 0
+    max_ranking = 0
+    for row in team_rankings_data[kTeamRankingRowStart:]:
+      try:
+        min_ranking = min(min_ranking, float(row[kTeamRankingColumnIdx]))
+        max_ranking = max(max_ranking, float(row[kTeamRankingColumnIdx]))
+      except:
+        pass
+    diff_max_min_ranking = max_ranking - min_ranking
+    # scale team rankings to be between 0 and 1
+    # if not team ranking available or can't be read, set team ranking to 0.5
+    team_rankings = {}
+    for row in team_rankings_data[1:]:
+      try:
+        if diff_max_min_ranking != 0:
+          ranking = (float(row[1]) - min_ranking) / diff_max_min_ranking
+          team_rankings[TeamRankings.kTeamRankingNameToAbbrev[str(row[0])]] = ranking
+        else:
           team_rankings[TeamRankings.kTeamRankingNameToAbbrev[str(row[0])]] = 0.5
-      return team_rankings
+      except:
+        team_rankings[TeamRankings.kTeamRankingNameToAbbrev[str(row[0])]] = 0.5
+    return team_rankings

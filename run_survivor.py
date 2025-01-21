@@ -1,54 +1,60 @@
 from results_odds_all_seasons import ResultsOddsAllSeasons
 from survivor_season import SurvivorSeason
-from survivor_season import PickMethod
 from consensus_picks import ConsensusPicks
 from team_rankings import TeamRankings
-import sys 
+from survivor_strategy import SurvivorStrategy
+import sys
 
 # program takes in NFL season to use for survivor simulation and number of entries
-#c_picks = ConsensusPicks()
-# retrieve consenus picks for every year
-#for year in range(2010, 2025):
-#  num_weeks = 18
-#  if (year < 2021): num_weeks = 17
-#  for week in range(1, num_weeks + 1):
-#    c_picks.RetrieveConsenusPicks(year, week)
-#    print("Consensus picks done: " + str(year) + " " + str(week))
+# retrieve year of season and number of starting entries from input arguments
 year = int(sys.argv[1])
-print("YEAR: %d" % year)
-print("Num entries: %d" % int(sys.argv[2]))
-# NFL season had 17 weeks before 2021 and 18 weeks currently
-#t_rankings = TeamRankings()
-#t_rankings.RetrieveTeamRankings("2024", "01", "18")
-num_weeks = 18
-if (year < 2021): num_weeks = 17
-surviving_entries = 0
-surviving_entries_weighted = 0
-'''for f in range(3, 17):
-  survivor_season = SurvivorSeason(int(sys.argv[1]), num_weeks, int(sys.argv[2]), f, False, False)
-  survivor_season_weighted = SurvivorSeason(int(sys.argv[1]), num_weeks, int(sys.argv[2]), f, True, False)
-  survivor_season_consensus = SurvivorSeason(int(sys.argv[1]), num_weeks, int(sys.argv[2]), f, False, True)
-  survivor_season_consensus_weighted = SurvivorSeason(int(sys.argv[1]), num_weeks, int(sys.argv[2]), f, True, True)'''
-f = 7
-for year in range(2010, 2025):
-  num_weeks = 18
-  if (year < 2021): num_weeks = 17
-  survivor_season_w_team_rankings = SurvivorSeason(year, num_weeks, int(sys.argv[2]), f, False, PickMethod.TEAM_RANKING_W_FAVORITE)
-  survivor_season_no_team_rankings = SurvivorSeason(year, num_weeks, int(sys.argv[2]), f, False, PickMethod.FAVORITE_ONLY)
-  #survivor_season_weighted = SurvivorSeason(year, num_weeks, int(sys.argv[2]), f, True, False)
-  #survivor_season_consensus = SurvivorSeason(year, num_weeks, int(sys.argv[2]), f, False, True)
-  #survivor_season_consensus_weighted = SurvivorSeason(year, num_weeks, int(sys.argv[2]), f, True, True)
-  for i in range(num_weeks):
-    surviving_entries_w_team_rankings = survivor_season_w_team_rankings.ProcessWeek()
-    surviving_entries_no_team_rankings = survivor_season_no_team_rankings.ProcessWeek()
-    #surviving_entries_weighted = survivor_season_weighted.ProcessWeek()
-    #surviving_entries_consensus = survivor_season_consensus.ProcessWeek()
-    #surviving_entries_consensus_weighted = survivor_season_consensus_weighted.ProcessWeek()
+num_entries = int(sys.argv[2])
+
+# set multiple strategies to make survivor picks
+survivor_strategy = SurvivorStrategy() 
+survivor_strategy_favorities_weighted = SurvivorStrategy()
+survivor_strategy_favorities_weighted.SetWeightPicksByWinPoss(True)
+survivor_strategy_consensus = SurvivorStrategy()
+survivor_strategy_consensus.SetConsensusPickSettings(True, True) 
+survivor_strategy_w_team_rankings = SurvivorStrategy()
+survivor_strategy_w_team_rankings.SetTeamRankingsWeight(1.0)
+survivor_strategy_w_team_rankings_to_week_10 = SurvivorStrategy()
+survivor_strategy_w_team_rankings_to_week_10.SetTeamRankingsWeight(1.0)
+survivor_strategy_w_fav_weighted_team_rankings_to_week_10 = SurvivorStrategy()
+survivor_strategy_w_fav_weighted_team_rankings_to_week_10.SetTeamRankingsWeight(1.0)
+survivor_strategy_w_fav_weighted_team_rankings_to_week_10.SetWeightPicksByWinPoss(True)
+
+for year in range(year, year + 1):
+  # initialize multiple survivor seasons, one for each survivor strategy
+  survivor_season_no_weighing = SurvivorSeason(year, num_entries)
+  survivor_season_weight_favorities = SurvivorSeason(year, num_entries)
+  survivor_season_consensus_weighted = SurvivorSeason(year, num_entries)
+  survivor_seasons_w_team_rankings = SurvivorSeason(year, num_entries)
+  survivor_seasons_w_team_rankings_to_week_10 = SurvivorSeason(year, num_entries)
+  survivor_seasons_w_fav_weighted_team_rankings_to_week_10 = SurvivorSeason(year, num_entries)
+
+  # NFL season had 17 weeks before 2021 and 18 weeks after that
+  num_weeks = 17 if (year < 2021) else 18
+
+  # go through each week of the season and process survivor entries for week
+  # using specified survivor strategy to select teams for each entry
+  for week_num in range(num_weeks):
+    if week_num >= 9:
+      survivor_strategy_w_team_rankings_to_week_10.SetTeamRankingsWeight(0.0)
+    surviving_entries_no_weighing = survivor_season_no_weighing.ProcessWeek(survivor_strategy)
+    surviving_entries_weight_favories = survivor_season_weight_favorities.ProcessWeek(survivor_strategy_favorities_weighted)
+    surviving_entries_consensus_weighted = survivor_season_consensus_weighted.ProcessWeek(survivor_strategy_consensus)
+    surviving_entries_w_team_rankings = survivor_seasons_w_team_rankings.ProcessWeek(survivor_strategy_w_team_rankings)
+    surviving_entries_w_team_rankings_to_week_10 = survivor_seasons_w_team_rankings_to_week_10.ProcessWeek(survivor_strategy_w_team_rankings_to_week_10)
+    surviving_entries_w_fav_weighted_team_rankings_to_week_10 = survivor_seasons_w_fav_weighted_team_rankings_to_week_10.ProcessWeek(survivor_strategy_w_fav_weighted_team_rankings_to_week_10)
+  
+  # print number of surviving entries in full season using each survivor strategy
   print()
   print("Year: " + str(year))
-  print("Number of expected winners randomly selected from for each entry: " + str(f))
-  print("Surviving entries w/ picks sorted by biggest favorites w/ team rankings: " + str(surviving_entries_w_team_rankings))
-  print("Surviving entries w/ picks sorted by biggest favorites (no team rankings): " + str(surviving_entries_no_team_rankings))
-  #print("Surviving entries w/ picks sorted by biggest favorites (weighted): " + str(surviving_entries_weighted))
-  #print("Surviving entries w/ picks sorted by consensus selections: " + str(surviving_entries_consensus))
-  #print("Surviving entries w/ picks sorted by consensus selections (weighted): " + str(surviving_entries_consensus_weighted))
+  print("Num entries at start: " + str(num_entries))
+  print("Surviving entries w/ picks randomly selected from favorities: " + str(surviving_entries_no_weighing))
+  print("Surviving entries w/ picks weighted to bigger favorities: " + str(surviving_entries_weight_favories))
+  print("Surviving entries w/ picks weighted by consensus picks: " + str(surviving_entries_consensus_weighted))
+  print("Surviving entries w/ picks weighted by team rankings: " + str(surviving_entries_w_team_rankings))
+  print("Surviving entries w/ picks weighted by team rankings (till week 10): " + str(surviving_entries_w_team_rankings_to_week_10))
+  print("Surviving entries w/ picks weighted to bigger favorities and team rankings (till week 10): " + str(surviving_entries_w_fav_weighted_team_rankings_to_week_10))
