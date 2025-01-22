@@ -45,11 +45,6 @@ class SurvivorEntry:
     for pick_result in self.picks_results:
       picks.append(pick_result[0])
     return picks
-  
-
-  # return picks and results for every week of entry
-  def PicksResults(self) -> List[List[str]]:
-    return self.picks_results
 
 
   # check if input team has been used in survivor entry

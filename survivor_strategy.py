@@ -13,11 +13,6 @@ class SurvivorStrategy:
     self.weight_picks_by_win_poss = False
     self.team_rankings_weight = 0.0
 
-  
-  # get the number of favorities to select from for each survivor entry
-  def NumFavoritiesSelectFrom(self) -> int:
-    return self.num_favorities_select_from
-
 
   def SetNumFavoritiesSelectFrom(self, num_select_from) -> None:
     self.num_favorities_select_from = num_select_from
@@ -42,17 +37,12 @@ class SurvivorStrategy:
     self.weigh_consensus_picks = weigh_consensus_picks
 
 
-  # return whether or not consensus picks are used
-  def UseConsensusPicks(self) -> bool:
-    return self.use_consensus_picks
-
-
   # set pick using weighing of consensus picks where teams that have a larger
   # percent of being picked are more likely to be picked
   def __WeightedConsensusPick(self, pick_possibilities):
     weights_picks = []
     for pick_poss in pick_possibilities:
-      weights_picks.append(pick_poss[3])
+      weights_picks.append(pick_poss.fav_team_consensus_pick_percent)
     choice = random.choices(pick_possibilities, weights = weights_picks)[0]
     return choice
 
@@ -67,7 +57,7 @@ class SurvivorStrategy:
   def __WeightedPick(self, pick_possibilities):
     weights_picks = []
     for pick_poss in pick_possibilities:
-      weights_picks.append(1.0 + self.__WeightFavorite(pick_poss[1]))
+      weights_picks.append(1.0 + self.__WeightFavorite(pick_poss.fav_team_win_percent))
     choice = random.choices(pick_possibilities, weights = weights_picks)[0]
     return choice
 
@@ -78,9 +68,10 @@ class SurvivorStrategy:
     choice = []
     weights_picks = []
     for pick_poss in pick_possibilities:
-      pick_weight = (1.0 - pick_poss[4]) + ((1.0 - self.team_rankings_weight) * 2)
+      # need to allow for pick weight to be above 0 in case where team ranking is 1
+      pick_weight = (1.0001 - pick_poss.fav_team_ranking) + ((1.0 - self.team_rankings_weight) * 2)
       if self.weight_picks_by_win_poss:
-        pick_weight += 1.0 + self.__WeightFavorite(pick_poss[1])
+        pick_weight += 1.0 + self.__WeightFavorite(pick_poss.fav_team_win_percent)
       weights_picks.append(pick_weight)
     choice = random.choices(pick_possibilities, weights = weights_picks)[0]
     return choice
