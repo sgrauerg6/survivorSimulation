@@ -14,7 +14,7 @@ class SurvivorSeason:
   kResultsOddsAllSeasonsFilePath = "spreadspoke_scores.csv"
   
   # initialize survivor season
-  def __init__(self, year, num_entries):
+  def __init__(self, year : int, num_entries : int):
     self.entries = []
     self.num_entries = num_entries
     self.year = year
@@ -33,7 +33,7 @@ class SurvivorSeason:
 
 
   # process week of survivor with any number of entries
-  def ProcessWeek(self, survive_picks_strategy) -> int:
+  def ProcessWeek(self, survive_picks_strategy : SurvivorStrategy) -> int:
     # increment week
     self.week_num += 1
 

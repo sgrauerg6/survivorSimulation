@@ -13,6 +13,9 @@ class ConsensusPicks:
   # consensus picks folder directory
   kConsensusPicksDir = "Data/ConsensusPicks"
 
+  # consensus picks file name prefix
+  kConsensusPicksFileNamePrefix = "consensus_picks_"
+
   # prefix of URL to retrieve consensus picks
   kPrefixURLConsensusPicks = "https://www.survivorgrid.com/picks/"
 
@@ -25,18 +28,20 @@ class ConsensusPicks:
     "SD" : "LAC",
     "WSH" : "WAS"
   }
-  
+
 
   # get file path for consensus picks for given year and week
   @staticmethod
-  def __ConsensusPicksFilePath(year, week) -> str:
-    return ConsensusPicks.kConsensusPicksDir + "/consensus_picks_" + str(year) + "_" + str(week) + ".csv"
+  def __ConsensusPicksFilePath(year : int, week : int) -> str:
+    return ConsensusPicks.kConsensusPicksDir + "/" + \
+           ConsensusPicks.kConsensusPicksFileNamePrefix + \
+           str(year) + "_" + str(week) + ".csv"
 
 
   # get consensus picks for given year and week
   # returns dictionary of team to consensus pick percent for each team for week
   @staticmethod
-  def ConsensusPicksForWeek(year, week) -> Dict[str, float]:
+  def ConsensusPicksForWeek(year : int, week : int) -> Dict[str, float]:
     consensus_picks_file = ConsensusPicks.__ConsensusPicksFilePath(year, week)
     with open(consensus_picks_file, newline='') as f:
       reader = csv.reader(f)
@@ -60,7 +65,7 @@ class ConsensusPicks:
 
   # retrieve consensus survivor picks for week and year from web scraping and save to csv
   @staticmethod
-  def RetrieveConsenusPicks(year, week) -> None:
+  def RetrieveConsenusPicks(year : int, week : int) -> None:
       URL = ConsensusPicks.kPrefixURLConsensusPicks + str(year) + "/" + str(week)
       print(URL)
       req = requests.get(URL)

@@ -10,27 +10,29 @@ from single_game import SingleGame
 class ResultsOddsSeason:
 
   # initialize survivor data for season using csv file with all data
-  def __init__(self, season_year, all_results_csv):
+  def __init__(self, season_year : int, all_results_csv_file_path : str):
     # read csv file with data from all seasons
     self.all_results_data = []
-    with open(all_results_csv, newline='') as f:
+    with open(all_results_csv_file_path, newline='') as f:
       reader = csv.reader(f)
       self.all_results_data = list(reader)
 
-    # generate list of SingleGame objects with data for single game
+    # generate list of SingleGame objects with data for each single game
+    # in season
     self.survivor_data = []
     for game_data_row in self.all_results_data[1:]:
       try:
-        # only add entries that correspond to input season year
+        # only add game data for games that correspond to input season year
         if (int(game_data_row[1]) == season_year):
           # generate SingleGame object from game data in row
+          # and add to survivor data for season
           self.survivor_data.append(SingleGame(game_data_row))
       except ValueError:
         pass
 
 
   # get starting year, month, and day for week of season
-  def StartingDateWeekOfSeason(self, year, week) -> List[int]:
+  def StartingDateWeekOfSeason(self, year : int, week : int) -> List[int]:
     # get starting date for season
     index_year = 1
     index_week = 2
@@ -45,9 +47,9 @@ class ResultsOddsSeason:
     return year_start_week, month_start_week, day_start_week 
 
 
-  # get survivor week options as list of game data containing
-  # all games for the week of the season
-  def SurvivorWeekOptions(self, year, week) -> List[SingleGame]:
+  # get survivor week options as list of SingleGame objects corresponding
+  # to all games for the week of the season
+  def SurvivorWeekOptions(self, year : int, week : int) -> List[SingleGame]:
     # get team rankings for week
     teams_w_rankings = TeamRankings.RetrieveTeamRankings(year, week)
     # get consensus picks for week

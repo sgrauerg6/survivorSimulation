@@ -16,13 +16,13 @@ class SurvivorEntry:
 
   # add pick with unknown result to be added later
   # each pick_results element contains 2 strings w/ pick followed by result
-  def AddPick(self, pick) -> None:
+  def AddPick(self, pick : str) -> None:
     self.picks_results.append([pick, 'UNKNOWN'])
   
 
   # add result of last pick, where result corresponds to winning team
     # or "TIE" if game is a tie
-  def SetLastPickResult(self, result) -> None:
+  def SetLastPickResult(self, result : str) -> None:
     self.picks_results[-1][1] = result
 
 
@@ -30,7 +30,7 @@ class SurvivorEntry:
   # typically in a game of NFL survivor an entry is out once there is one
   # strike, but there are variations that allow multiple strikes 
   # tie is not considered a strike by default but can be set to be
-  def NumStrikes(self, tie_is_strike = False) -> int:
+  def NumStrikes(self, tie_is_strike : bool = False) -> int:
     strikes = 0
     for pick_result in self.picks_results:
       if tie_is_strike and pick_result[1] == "TIE": strikes != 1
@@ -49,6 +49,6 @@ class SurvivorEntry:
 
   # check if input team has been used in survivor entry
   # return true if team has been used, false otherwise
-  def PickUsed(self, pick) -> bool:
+  def PickUsed(self, pick : str) -> bool:
     return pick in self.AllPicks()
     

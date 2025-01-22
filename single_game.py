@@ -1,5 +1,8 @@
 # Class corresponding to a single game
 
+from typing import List
+from typing import Dict
+
 # Class corresponding to a single game where the favored team is a candidate
 # for selection for week in survivor
 class SingleGame:
@@ -66,7 +69,7 @@ class SingleGame:
   
 
   # initialize data for game from list with specific data in known indices
-  def __init__(self, game_data):
+  def __init__(self, game_data : List[str]):
     # retrieve season year and week and home/away team from game data
     self.season_year = int(game_data[SingleGame.kSeasonYearIdx])
     self.season_week = int(game_data[SingleGame.kSeasonWeekIdx])
@@ -104,15 +107,15 @@ class SingleGame:
 
 
   # compute approximate win percent from spread
-  def __SpreadToWinPercent(self, spread) -> float:
+  def __SpreadToWinPercent(self, spread : float) -> float:
     return round((float(98 - 50) / 15.5) * min(15.5, abs(spread)) + 50.0)
 
 
   # add consensus pick percentage for favored team
-  def AddFavTeamConsensusPickPercent(self, consensus_pick_by_team) -> None:
+  def AddFavTeamConsensusPickPercent(self, consensus_pick_by_team : Dict[str, float]) -> None:
     self.fav_team_consensus_pick_percent = consensus_pick_by_team[self.favored_team]
 
 
   # add team ranking for favored team
-  def AddFavTeamTeamRanking(self, team_rankings_by_team) -> None:
+  def AddFavTeamTeamRanking(self, team_rankings_by_team : Dict[str, float]) -> None:
     self.fav_team_ranking = team_rankings_by_team[self.favored_team]
