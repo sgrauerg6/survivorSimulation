@@ -26,6 +26,23 @@ class SurvivorEntry:
     self.picks_results[-1][1] = result
 
 
+  # get if last pick is a strike or not
+  def IsLastPickStrike(self, tie_is_strike : bool = False) -> bool:
+    if tie_is_strike and self.picks_results[-1][1] == "TIE": return True
+    if not tie_is_strike and self.picks_results[-1][1] == "TIE": return False
+    if self.picks_results[-1][0] != self.picks_results[-1][1]: return True
+    return False
+
+
+  # get if pick is a strike or not
+  def IsPickStrike(self, week_idx : int, tie_is_strike : bool = False) -> bool:
+    if tie_is_strike and self.picks_results[week_idx][1] == "TIE": return True
+    if not tie_is_strike and self.picks_results[week_idx][1] == "TIE": return False
+    if self.picks_results[week_idx][0] != self.picks_results[week_idx][1]: return True
+    return False
+
+
+
   # returns number of "wrong picks" where picked team loses
   # typically in a game of NFL survivor an entry is out once there is one
   # strike, but there are variations that allow multiple strikes 
