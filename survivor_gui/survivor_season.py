@@ -21,6 +21,7 @@ class SurvivorSeason:
     self.year = year
     self.results = ResultsOddsSeason(self.year, SurvivorSeason.kResultsOddsAllSeasonsFilePath)
     self.week_num = 0
+    self.week_options = []
     for i in range(self.num_entries):
       self.entries.append(SurvivorEntry())
   
@@ -43,14 +44,14 @@ class SurvivorSeason:
     # (based on odds), consensus pick %, team ranking, and winning team of
     # game
     # only favored teams are considered
-    week_options = self.results.SurvivorWeekOptions(self.year, self.week_num)
+    self.week_options = self.results.SurvivorWeekOptions(self.year, self.week_num)
 
     # sort team options for week by most popular consensus picks or by most
     # favored to win depending on current setting
     if (survive_picks_strategy.use_consensus_picks):
-      week_options.sort(key=lambda game_data: game_data.fav_team_consensus_pick_percent, reverse = True)
+      self.week_options.sort(key=lambda game_data: game_data.fav_team_consensus_pick_percent, reverse = True)
     else:
-      week_options.sort(key=lambda game_data: game_data.fav_team_win_percent, reverse = True)
+      self.week_options.sort(key=lambda game_data: game_data.fav_team_win_percent, reverse = True)
 
     # go through each entry and add pick
     # select team in first num_favorites_selection if one available using
@@ -61,7 +62,7 @@ class SurvivorSeason:
       if entry.NumStrikes() == 0:
         # generate initial list of pick possibilities from top favorities (or consensus picks if that
         # survivor strategy used)
-        pick_possibilities = week_options[0:survive_picks_strategy.num_favorities_select_from]
+        pick_possibilities = self.week_options[0:survive_picks_strategy.num_favorities_select_from]
         week_pick = []
 
         # generate list of picks to remove since already used in previous week
@@ -78,7 +79,7 @@ class SurvivorSeason:
         else:
           # if all favorite pick possibilities used, select next
           # favorite that has not been used
-          for pick_poss in week_options[survive_picks_strategy.num_favorities_select_from:]:
+          for pick_poss in self.week_options[survive_picks_strategy.num_favorities_select_from:]:
             if not entry.PickUsed(pick_poss.favored_team):
               week_pick = pick_poss
               break
