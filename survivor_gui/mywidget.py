@@ -19,6 +19,22 @@ class MyWidget(QWidget):
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.picks_info_layout = QtWidgets.QHBoxLayout()
         self.picks_info_layout.setSpacing(100)
+        self.picks_layout = QtWidgets.QVBoxLayout()
+        self.picks_layout.setSpacing(0)
+        self.season_entries_header = QtWidgets.QLabel("NFL Season: 2024  Entries At Start: 150   Remaining Entries: 150")
+        self.season_entries_header.setStyleSheet("color:rgba(0, 0, 0, 100%)")
+        font = self.season_entries_header.font();
+        font.setPointSize(20);
+        font.setBold(False);
+        self.season_entries_header.setFont(font);
+        self.picks_title = QtWidgets.QLabel("Survivor Entries")
+        self.picks_title.setStyleSheet("color:rgba(0, 0, 0, 100%)")
+        font = self.picks_title.font();
+        font.setPointSize(12);
+        font.setBold(True);
+        self.picks_title.setFont(font);
+        self.picks_layout.addWidget(self.season_entries_header)
+        self.picks_layout.addWidget(self.picks_title)
         self.picks_table = QtWidgets.QTableWidget(self.num_entries, self.num_weeks, self)
         self.picks_table.setStyleSheet("background:rgba(102, 64, 25, 100%)")
         self.picks_table.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -29,18 +45,33 @@ class MyWidget(QWidget):
           weeks_header.append("Week " + str(i))
         self.picks_table.setHorizontalHeaderLabels(weeks_header)
         self.picks_table.setFixedWidth(750)
-        pick_info_header = ["Favored Team", "% Win", "Consensus %", "Team Rating", "Picks Count"]
+        self.week_info_layout = QtWidgets.QVBoxLayout()
+        self.week_info_layout.setSpacing(0)
+        self.week_info_title = QtWidgets.QLabel("")
+        font = self.week_info_title.font();
+        font.setPointSize(24);
+        font.setBold(True);
+        self.week_info_title.setFont(font);
+        self.week_info_title.setStyleSheet("color:rgba(0, 0, 127, 100%)")
+        #self.week_info_title.setFixedHeight(38)
+        self.week_info_title.setContentsMargins(0, 0, 0, 5)
         self.picks_info = QtWidgets.QTableWidget(16, 5, self)
         self.picks_info.setStyleSheet("background:rgba(0,0,0,100%)")
         self.picks_info.setEditTriggers(QTableWidget.NoEditTriggers)
         self.picks_info.setFocusPolicy(QtCore.Qt.NoFocus)
         self.picks_info.setSelectionMode(QAbstractItemView.NoSelection)
+        pick_info_header = ["Favored Team", "% Win", "Consensus %", "Team Rating", "Picks Count"]
         self.picks_info.setHorizontalHeaderLabels(pick_info_header)
         self.picks_info.verticalHeader().setVisible(False)
         self.picks_info.setFixedWidth(502)
-        self.picks_info_layout.addWidget(self.picks_table, 1)
+        self.picks_info.setFixedHeight(515)
+        self.picks_layout.addWidget(self.picks_table)
+        self.week_info_layout.addWidget(self.week_info_title, 0)
+        self.week_info_layout.addWidget(self.picks_info, 1)
+
+        self.picks_info_layout.addLayout(self.picks_layout, 1)
         self.picks_info_layout.addSpacing(50)
-        self.picks_info_layout.addWidget(self.picks_info, 1)
+        self.picks_info_layout.addLayout(self.week_info_layout, 1)
         self.picks_info_layout.addStretch(0.25)
 
         self.button = QtWidgets.QPushButton("Simulate Week 1")
@@ -67,8 +98,10 @@ class MyWidget(QWidget):
     @QtCore.Slot()
     def magic(self):
         print("Week: " + str(self.survivor_season_no_weighing.week_num))
+        self.week_info_title.setText("Week " + str(self.survivor_season_no_weighing.week_num + 1) + " Games")
         if self.survivor_season_no_weighing.week_num < self.num_weeks:
           self.surviving_entries_no_weighing = self.survivor_season_no_weighing.ProcessWeek(self.survivor_strategy)
+          self.season_entries_header.setText("NFL Season: 2024   Entries At Start: 150   Remaining Entries: " + str(self.surviving_entries_no_weighing))
           print("Week num: " + str(self.survivor_season_no_weighing.week_num))
           print("Num entries: " + str(self.surviving_entries_no_weighing))
           self.AddSurvivorEntriesToTable()
@@ -81,6 +114,11 @@ class MyWidget(QWidget):
             self.button.setText("Reset To Start")
         else:
           self.picks_table.clear()
+          self.picks_info.clear()
+          self.season_entries_header.setText("NFL Season: 2024   Entries At Start: 150   Remaining Entries: 150")
+          pick_info_header = ["Favored Team", "% Win", "Consensus %", "Team Rating", "Picks Count"]
+          self.picks_info.setHorizontalHeaderLabels(pick_info_header)
+          self.week_info_title.setText("")
           weeks_header = []
           for i in range(1, self.num_weeks + 1):
             weeks_header.append("Week " + str(i))
