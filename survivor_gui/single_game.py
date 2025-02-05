@@ -92,13 +92,19 @@ class SingleGame:
     # set percent chance that favorite will win from spread
     self.fav_team_win_percent = self.__SpreadToWinPercent(float(game_data[SingleGame.kFavoredTeamSpreadIdx]))
 
-    # determine and add winning team
+    # determine and add winning team and score of winning and losing team
     if int(game_data[SingleGame.kHomeTeamScore]) > int(game_data[SingleGame.kAwayTeamScore]):
       self.winning_team = self.home_team
+      self.winning_score = game_data[SingleGame.kHomeTeamScore]
+      self.losing_score = game_data[SingleGame.kAwayTeamScore]
     elif int(game_data[SingleGame.kHomeTeamScore]) == int(game_data[SingleGame.kAwayTeamScore]):
       self.winning_team = "TIE"
+      self.winning_score = game_data[SingleGame.kHomeTeamScore]
+      self.losing_score = game_data[SingleGame.kAwayTeamScore]
     else:
       self.winning_team = self.away_team
+      self.winning_score = game_data[SingleGame.kAwayTeamScore]
+      self.losing_score = game_data[SingleGame.kHomeTeamScore]
     
     # initialize favored team consensus pick percent and team ranking
     # to default values
