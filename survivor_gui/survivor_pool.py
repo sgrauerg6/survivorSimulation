@@ -100,6 +100,87 @@ class PicksTableWInfo(QtWidgets.QVBoxLayout):
     self.__picks_table.scrollToItem(self.__picks_table.item(0, week_num - 1))
 
 
+# class corresponding to vertical box layout that contains table with survivor pick options for week and info
+# above it
+class PickOptionsTableWInfo(QtWidgets.QVBoxLayout):
+
+  def __init__(self, parent):
+    super().__init__()
+    self.setSpacing(0)
+    self.week_info_title = QtWidgets.QLabel("")
+    font = self.week_info_title.font();
+    font.setPointSize(24);
+    font.setBold(True);
+    self.week_info_title.setFont(font);
+    self.week_info_title.setStyleSheet("color:rgba(0, 0, 127, 100%)")
+    self.week_info_title.setContentsMargins(0, 0, 0, 5)
+    self.picks_info = QtWidgets.QTableWidget(16, 6, parent)
+    self.picks_info.setStyleSheet("background:rgba(0,0,0,100%)")
+    self.picks_info.setEditTriggers(QTableWidget.NoEditTriggers)
+    self.picks_info.setFocusPolicy(QtCore.Qt.NoFocus)
+    self.picks_info.setSelectionMode(QAbstractItemView.NoSelection)
+    pick_info_header = ["Favored Team", "% Win", "Consensus %", "Team Rating", "Picks Count", "Result"]
+    header = self.picks_info.horizontalHeader()
+    for column in range(header.count()):
+      header.setSectionResizeMode(column, QHeaderView.Stretch)
+    self.picks_info.setHorizontalHeaderLabels(pick_info_header)
+    self.picks_info.verticalHeader().setVisible(False)
+    self.picks_info.setFixedWidth(502)
+    self.picks_info.setFixedHeight(515)
+    self.addWidget(self.week_info_title, 0)
+    self.addWidget(self.picks_info, 1)
+
+
+  def ClearPicksInfo(self):
+    self.picks_info.clear()
+    pick_info_header = ["Favored Team", "% Win", "Consensus %", "Team Rating", "Picks Count", "Result"]
+    self.picks_info.setHorizontalHeaderLabels(pick_info_header)
+    self.week_info_title.setText("")
+
+
+  def UpdatePicksInfo(self, pick_options_week, week_idx : int, week_picks) -> None:
+    for pick_idx in range(0, min(16, len(pick_options_week[week_idx]))):
+      favored_team_lbl = QtWidgets.QLabel()
+      favored_team_lbl.setMargin(5)
+      result_lbl = QtWidgets.QLabel()
+      result_lbl.setMargin(5)
+      self.picks_info.setCellWidget(pick_idx, 0, favored_team_lbl)
+      self.picks_info.setCellWidget(pick_idx, 5, result_lbl)
+      self.picks_info.setItem(pick_idx, 1, QTableWidgetItem(str(pick_options_week[week_idx][pick_idx].fav_team_win_percent)))
+      self.picks_info.setItem(pick_idx, 2, QTableWidgetItem(str(pick_options_week[week_idx][pick_idx].fav_team_consensus_pick_percent)))
+      self.picks_info.setItem(pick_idx, 3, QTableWidgetItem(str(round(pick_options_week[week_idx][pick_idx].fav_team_ranking, 2))))
+      self.picks_info.setItem(pick_idx, 4, QTableWidgetItem(str(week_picks.count(pick_options_week[week_idx][pick_idx].favored_team))))
+      if pick_options_week[week_idx][pick_idx].winning_team == pick_options_week[week_idx][pick_idx].favored_team or pick_options_week[week_idx][pick_idx].winning_team == "TIE":
+        favored_team_lbl.setText(\
+            "<span style='font-size:18px;'><b>" + pick_options_week[week_idx][pick_idx].favored_team + \
+            "</b></span><span style='font-size:10px;'>" + " vs " + pick_options_week[week_idx][pick_idx].underdog + "</span>")
+        favored_team_lbl.setStyleSheet("QLabel { background-color : green; }");
+        result_lbl.setText("<span style='font-size:18px;'><b>" + " W " + "</span>" + "</b></span><span style='font-size:10px;'>" + \
+            str(pick_options_week[week_idx][pick_idx].winning_score) + "-" + str(pick_options_week[week_idx][pick_idx].losing_score) + "<\span>")
+        result_lbl.setStyleSheet("QLabel { background-color : green; }");
+        for col in range(1, 5):
+          self.picks_info.item(pick_idx, col).setBackground(QColor("green"))
+      else:
+        favored_team_lbl.setText(\
+            "<span style='font-size:18px;'><b>" + pick_options_week[week_idx][pick_idx].favored_team + \
+            "</b></span><span style='font-size:10px;'>" + " vs " + pick_options_week[week_idx][pick_idx].underdog + "</span>")
+        favored_team_lbl.setStyleSheet("QLabel { background-color : red; }");
+        result_lbl.setText("<span style='font-size:18px;'><b>" + " L " + "</span>" + "</b></span><span style='font-size:10px;'>" + \
+            str(pick_options_week[week_idx][pick_idx].losing_score) + "-" + str(pick_options_week[week_idx][pick_idx].winning_score) + "<\span>")
+        result_lbl.setStyleSheet("QLabel { background-color : red; }");
+        for col in range(1, 5):
+          self.picks_info.item(pick_idx, col).setBackground(QColor("red"))
+    self.picks_info.resizeColumnsToContents()
+    header = self.picks_info.horizontalHeader()
+    for column in range(header.count()):
+      header.setSectionResizeMode(column, QHeaderView.Stretch)
+
+
+  def UpdateWeekInfoTitle(self, week_num : int) -> None:
+    self.week_info_title.setText("Week " + str(week_num + 1) + " Games")
+
+
+
 class SurvivorPool(QWidget):
   def __init__(self, parent=None):
     super().__init__(parent)
@@ -109,51 +190,7 @@ class SurvivorPool(QWidget):
     self.nfl_season = 2024
     self.num_weeks = 18
 
-    self.main_layout = QtWidgets.QVBoxLayout(self)
-    self.picks_info_layout = QtWidgets.QHBoxLayout()
-    self.picks_info_layout.setSpacing(100)
-
-    # set up layout with picks table with corresponding info
-    self.picks_tbl_w_info = PicksTableWInfo(self, self.num_entries, self.nfl_season, self.num_weeks)
-
-    self.week_info_layout = QtWidgets.QVBoxLayout()
-    self.week_info_layout.setSpacing(0)
-    self.week_info_title = QtWidgets.QLabel("")
-    font = self.week_info_title.font();
-    font.setPointSize(24);
-    font.setBold(True);
-    self.week_info_title.setFont(font);
-    self.week_info_title.setStyleSheet("color:rgba(0, 0, 127, 100%)")
-    self.week_info_title.setContentsMargins(0, 0, 0, 5)
-    self.picks_info = QtWidgets.QTableWidget(16, 6, self)
-    self.picks_info.setStyleSheet("background:rgba(0,0,0,100%)")
-    self.picks_info.setEditTriggers(QTableWidget.NoEditTriggers)
-    self.picks_info.setFocusPolicy(QtCore.Qt.NoFocus)
-    self.picks_info.setSelectionMode(QAbstractItemView.NoSelection)
-    pick_info_header = ["Favored Team", "% Win", "Consensus %", "Team Rating", "Picks Count", "Result"]
-    self.picks_info.resizeColumnsToContents()
-    header = self.picks_info.horizontalHeader()
-    for column in range(header.count()):
-      header.setSectionResizeMode(column, QHeaderView.Stretch)
-    self.picks_info.setHorizontalHeaderLabels(pick_info_header)
-    self.picks_info.verticalHeader().setVisible(False)
-    self.picks_info.setFixedWidth(502)
-    self.picks_info.setFixedHeight(515)
-    self.week_info_layout.addWidget(self.week_info_title, 0)
-    self.week_info_layout.addWidget(self.picks_info, 1)
-
-    self.picks_info_layout.addLayout(self.picks_tbl_w_info, 1)
-    self.picks_info_layout.addSpacing(50)
-    self.picks_info_layout.addLayout(self.week_info_layout, 1)
-    self.picks_info_layout.addStretch(0.25)
-
-    self.simulate_week_btn = QtWidgets.QPushButton("Simulate Week 1")
-    font = self.simulate_week_btn.font();
-    font.setPointSize(20);
-    font.setBold(True);
-    self.simulate_week_btn.setFont(font)
-    self.simulate_week_btn.setFixedHeight(35)
-    self.simulate_week_btn.setStyleSheet("background:rgba(255,255,0,100%); color:rgba(0, 0, 0, 100%)")
+    # set up headline label for top of layout
     self.headline_label = QtWidgets.QLabel("NFL Survivor Pool Simulation", alignment=QtCore.Qt.AlignCenter)
     font = self.headline_label.font();
     font.setPointSize(50);
@@ -161,86 +198,89 @@ class SurvivorPool(QWidget):
     self.headline_label.setFont(font);
     self.headline_label.setStyleSheet("color:rgba(0, 0, 0, 100%)")
 
+    # set up layout with picks table with corresponding info
+    self.picks_tbl_w_info = PicksTableWInfo(self, self.num_entries, self.nfl_season, self.num_weeks)
+
+    # set up layout with pick options for week and corresponding info
+    self.week_info_layout = PickOptionsTableWInfo(self)
+
+    # set up horizontal layout with picks on the left side and
+    # info about week for season week on right side
+    self.picks_info_layout = QtWidgets.QHBoxLayout()
+    self.picks_info_layout.setSpacing(100)
+    self.picks_info_layout.addLayout(self.picks_tbl_w_info, 1)
+    self.picks_info_layout.addSpacing(50)
+    self.picks_info_layout.addLayout(self.week_info_layout, 1)
+    self.picks_info_layout.addStretch(0.25)
+
+    # add button to simulate season week
+    self.simulate_week_btn = QtWidgets.QPushButton("Simulate Week 1")
+    font = self.simulate_week_btn.font();
+    font.setPointSize(20);
+    font.setBold(True);
+    self.simulate_week_btn.setFont(font)
+    self.simulate_week_btn.setFixedHeight(35)
+    self.simulate_week_btn.setStyleSheet("background:rgba(255,255,0,100%); color:rgba(0, 0, 0, 100%)")
+    self.simulate_week_btn.clicked.connect(self.SimulateWeek)
+
+    # set up main layout
+    self.main_layout = QtWidgets.QVBoxLayout(self)
     self.main_layout.addWidget(self.headline_label)
     self.main_layout.addLayout(self.picks_info_layout)
     self.main_layout.addWidget(self.simulate_week_btn)
-    self.simulate_week_btn.clicked.connect(self.SimulateWeek)
+
+    # initialize survivor season and strategy for picks
+    self.survivor_season = SurvivorSeason(self.nfl_season, self.num_entries)
     self.survivor_strategy = SurvivorStrategy()
-    self.survivor_season_no_weighing = SurvivorSeason(self.nfl_season, self.num_entries)
     self.pick_options_week = []
 
 
+  # simulate season week for survivor pool including picks for each active entry
   @QtCore.Slot()
   def SimulateWeek(self) -> None:
-    print("Week: " + str(self.survivor_season_no_weighing.week_num))
-    self.week_info_title.setText("Week " + str(self.survivor_season_no_weighing.week_num + 1) + " Games")
-    if self.survivor_season_no_weighing.week_num < self.num_weeks:
-      self.surviving_entries_no_weighing = self.survivor_season_no_weighing.ProcessWeek(self.survivor_strategy)
-      self.picks_tbl_w_info.UpdateSeasonEntriesHeader(self.surviving_entries_no_weighing)
-      print("Week num: " + str(self.survivor_season_no_weighing.week_num))
-      print("Num entries: " + str(self.surviving_entries_no_weighing))
-      self.picks_tbl_w_info.ScrollTableToWeek(self.survivor_season_no_weighing.week_num);
-      self.picks_tbl_w_info.AddSurvivorEntriesToTable(self.survivor_season_no_weighing)
-      self.pick_options_week.append(self.survivor_season_no_weighing.week_options)
-      self.AddPickOptionsInfoToTable(self.survivor_season_no_weighing.week_num)
-      if (self.survivor_season_no_weighing.week_num + 1) <= self.num_weeks:
-        self.simulate_week_btn.setText("Simulate Week " + str(self.survivor_season_no_weighing.week_num + 1))
+    self.week_info_layout.UpdateWeekInfoTitle(self.survivor_season.week_num)
+    if self.survivor_season.week_num < self.num_weeks:
+      # generate survivor pool picks for week using survivor strategy
+      self.surviving_entries = self.survivor_season.ProcessWeek(self.survivor_strategy)
+
+      # update table with survivor picks with survivor pool entries for week
+      self.picks_tbl_w_info.UpdateSeasonEntriesHeader(self.surviving_entries)
+      self.picks_tbl_w_info.ScrollTableToWeek(self.survivor_season.week_num);
+      self.picks_tbl_w_info.AddSurvivorEntriesToTable(self.survivor_season)
+
+      # update table with pick options for week
+      self.pick_options_week.append(self.survivor_season.week_options)
+      self.AddPickOptionsInfoToTable(self.survivor_season.week_num)
+
+      # Update button for simulating week to increment to following week
+      # or to reset to start if in final week
+      if (self.survivor_season.week_num + 1) <= self.num_weeks:
+        self.simulate_week_btn.setText("Simulate Week " + str(self.survivor_season.week_num + 1))
       else:
         self.simulate_week_btn.setText("Reset To Start")
     else:
+      # all weeks of season have been simulated, so reset back to starting week
       self.picks_tbl_w_info.ClearPicks()
-      self.picks_info.clear()
+      self.week_info_layout.ClearPicksInfo()
       self.picks_tbl_w_info.UpdateSeasonEntriesHeader(self.num_entries)
-      pick_info_header = ["Favored Team", "% Win", "Consensus %", "Team Rating", "Picks Count", "Result"]
-      self.picks_info.setHorizontalHeaderLabels(pick_info_header)
-      self.week_info_title.setText("")
-      self.survivor_season_no_weighing = SurvivorSeason(self.nfl_season, self.num_entries)
-      self.simulate_week_btn.setText("Simulate Week " + str(self.survivor_season_no_weighing.week_num + 1))
+      self.survivor_season = SurvivorSeason(self.nfl_season, self.num_entries)
+      self.simulate_week_btn.setText("Simulate Week " + str(self.survivor_season.week_num + 1))
 
 
   def AddPickOptionsInfoToTable(self, week : int) -> None:
-    # get survivor pick options for week in order that determined from survivor strategy
-    entries = self.survivor_season_no_weighing.entries
     week_picks = []
     week_idx = week - 1
+
+    # get survivor pick for all entries for all weeks
+    entries = self.survivor_season.entries
+
+    # get picks for season week
     for entry in entries:
-      if len(entry.AllPicks()) == self.survivor_season_no_weighing.week_num:
+      if len(entry.AllPicks()) == self.survivor_season.week_num:
         week_picks.append(entry.picks_results[week_idx][0])
-    for pick_idx in range(0, min(16, len(self.pick_options_week[week_idx]))):
-      favored_team_lbl = QtWidgets.QLabel()
-      favored_team_lbl.setMargin(5)
-      result_lbl = QtWidgets.QLabel()
-      result_lbl.setMargin(5)
-      self.picks_info.setCellWidget(pick_idx, 0, favored_team_lbl)
-      self.picks_info.setCellWidget(pick_idx, 5, result_lbl)
-      self.picks_info.setItem(pick_idx, 1, QTableWidgetItem(str(self.pick_options_week[week_idx][pick_idx].fav_team_win_percent)))
-      self.picks_info.setItem(pick_idx, 2, QTableWidgetItem(str(self.pick_options_week[week_idx][pick_idx].fav_team_consensus_pick_percent)))
-      self.picks_info.setItem(pick_idx, 3, QTableWidgetItem(str(round(self.pick_options_week[week_idx][pick_idx].fav_team_ranking, 2))))
-      self.picks_info.setItem(pick_idx, 4, QTableWidgetItem(str(week_picks.count(self.pick_options_week[week_idx][pick_idx].favored_team))))
-      if self.pick_options_week[week_idx][pick_idx].winning_team == self.pick_options_week[week_idx][pick_idx].favored_team or self.pick_options_week[week_idx][pick_idx].winning_team == "TIE":
-        favored_team_lbl.setText(\
-            "<span style='font-size:18px;'><b>" + self.pick_options_week[week_idx][pick_idx].favored_team + \
-            "</b></span><span style='font-size:10px;'>" + " vs " + self.pick_options_week[week_idx][pick_idx].underdog + "</span>")
-        favored_team_lbl.setStyleSheet("QLabel { background-color : green; }");
-        result_lbl.setText("<span style='font-size:18px;'><b>" + " W " + "</span>" + "</b></span><span style='font-size:10px;'>" + \
-            str(self.pick_options_week[week_idx][pick_idx].winning_score) + "-" + str(self.pick_options_week[week_idx][pick_idx].losing_score) + "<\span>")
-        result_lbl.setStyleSheet("QLabel { background-color : green; }");
-        for col in range(1, 5):
-          self.picks_info.item(pick_idx, col).setBackground(QColor("green"))
-      else:
-        favored_team_lbl.setText(\
-            "<span style='font-size:18px;'><b>" + self.pick_options_week[week_idx][pick_idx].favored_team + \
-            "</b></span><span style='font-size:10px;'>" + " vs " + self.pick_options_week[week_idx][pick_idx].underdog + "</span>")
-        favored_team_lbl.setStyleSheet("QLabel { background-color : red; }");
-        result_lbl.setText("<span style='font-size:18px;'><b>" + " L " + "</span>" + "</b></span><span style='font-size:10px;'>" + \
-            str(self.pick_options_week[week_idx][pick_idx].losing_score) + "-" + str(self.pick_options_week[week_idx][pick_idx].winning_score) + "<\span>")
-        result_lbl.setStyleSheet("QLabel { background-color : red; }");
-        for col in range(1, 5):
-          self.picks_info.item(pick_idx, col).setBackground(QColor("red"))
-    self.picks_info.resizeColumnsToContents()
-    header = self.picks_info.horizontalHeader()
-    for column in range(header.count()):
-      header.setSectionResizeMode(column, QHeaderView.Stretch)
+
+    # update pick options info for season week
+    self.week_info_layout.UpdatePicksInfo(self.pick_options_week, week_idx, week_picks)
 
 
 if __name__ == "__main__":

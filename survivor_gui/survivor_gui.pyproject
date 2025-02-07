@@ -1,8 +1,7 @@
 {
     "files": [
         "consensus_picks.py",
-        "mywidget.py",
-        "mywidget.py",
+        "survivor_pool.py",
         "results_odds_season.py",
         "run_survivor.py",
         "single_game.py",
