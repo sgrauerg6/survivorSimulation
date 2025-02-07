@@ -31,22 +31,6 @@ class ResultsOddsSeason:
         pass
 
 
-  # get starting year, month, and day for week of season
-  def StartingDateWeekOfSeason(self, year : int, week : int) -> List[int]:
-    # get starting date for season
-    index_year = 1
-    index_week = 2
-    for game_data in self.all_results_data:
-      if (game_data[index_year] == str(year)) and ((game_data[index_week]) == str(week)):
-        starting_date = game_data[0]
-        break
-    month_start_week = str(starting_date.split('/')[0]).zfill(2)
-    day_start_week = str(starting_date.split('/')[1]).zfill(2)
-    year_start_week = str(starting_date.split('/')[2]).zfill(2)
-
-    return year_start_week, month_start_week, day_start_week 
-
-
   # get survivor week options as list of SingleGame objects corresponding
   # to all games for the week of the season
   def SurvivorWeekOptions(self, year : int, week : int) -> List[SingleGame]:
@@ -65,3 +49,19 @@ class ResultsOddsSeason:
     
     # return list of game data corresponding to all games in week
     return week_options
+
+
+  # get starting year, month, and day for week of season
+'''  def StartingDateWeekOfSeason(self, year : int, week : int) -> List[int]:
+    # get starting date for season
+    index_year = 1
+    index_week = 2
+    for game_data in self.all_results_data:
+      if (game_data[index_year] == str(year)) and ((game_data[index_week]) == str(week)):
+        starting_date = game_data[0]
+        break
+    month_start_week = str(starting_date.split('/')[0]).zfill(2)
+    day_start_week = str(starting_date.split('/')[1]).zfill(2)
+    year_start_week = str(starting_date.split('/')[2]).zfill(2)
+
+    return year_start_week, month_start_week, day_start_week'''
