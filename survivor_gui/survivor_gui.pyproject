@@ -9,6 +9,8 @@
         "survivor_entry.py",
         "survivor_season.py",
         "survivor_strategy.py",
-        "team_rankings.py"
+        "team_rankings.py",
+        "picks_table_w_info.py",
+        "pick_options_table_w_info.py"
     ]
 }
